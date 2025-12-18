@@ -1,6 +1,6 @@
 #include <iostream>
 using namespace std;
-
+const int SIZE = 100;
 
 void Shuffle(char cards[],int size=6)
 {
@@ -30,6 +30,23 @@ void Shuffle(char cards[],int size=6)
 		cout << cards[i]<<' ';
 	}
 }
+bool CheckString(char* string1,const char* string2)
+{
+	int size = 0;
+	while (*(string2+size)!='\0')
+	{
+		size++;
+	}
+	bool check = true;
+	for (int i = 1; i < size; i++)
+	{
+		if (*(string1 + i-1) != *(string2 + i))
+		{
+			check = false;
+		}
+	}
+	return check;
+}
 using namespace std;
 int main()
 {
@@ -37,8 +54,10 @@ int main()
 	cout << "> start"<< endl;
 	cout << "> rules" << endl;
 	cout << "> settings" << endl<<endl<<'>';
-	string comand = "";
-	cin >> comand;
+	char comand[SIZE];
+	cin.ignore();
+	cin.getline(comand,SIZE);
+
 	char colors[] = {'♠','♥','♦','♣'};
 	char cards[] = 
 	{ 
@@ -55,13 +74,15 @@ int main()
 	//Shuffle(new_cards);
 	while (true)
 	{
-		if (comand == "start")
+
+		if (CheckString(comand,"start"))
 		{
 			cout << "You can choose whether to play against the computer or not."<<endl;
 			cout << "> Player vs Player (p or P)" << endl;
 			cout << "> Computer vs Player (c or C)" << endl << endl << '>';
-			cin >> comand;
-			if (comand == "Player vs Player" || comand == "P" || comand == "p")
+			cin.ignore();
+			cin.getline(comand, SIZE);
+			if (CheckString(comand,"Player vs Player") || CheckString(comand, "P") || CheckString(comand, "p"))
 			{
 				
 				cout << "The game started!" << endl;
@@ -71,25 +92,29 @@ int main()
 				{
 					case 0:
 					{
-						cout << "Trump suit :"<<u8"♠(Spades)" << endl;
+						char c = 6;
+						cout << "Trump suit :"<< c<< "(Spades)" << endl;
 						cout << "Bottom card :" << cards[random_card] <<"(Spade)"<< endl;
 						break;
 					}
 					case 1:
 					{
-						cout << "Trump suit : " << u8"♥(Hearts)" << endl;
+						char c = 3;
+						cout << "Trump suit : " << c << "(Hearts)" << endl;
 						cout << "Bottom card :" << cards[random_card] << "(Heart)" << endl;
 						break;
 					}
 					case 2:
 					{
-						cout << "Trump suit : " << u8"♦(Dimands)" << endl;
+						char c = 4;
+						cout << "Trump suit : " << c << "(Dimands)" << endl;
 						cout << "Bottom card :" << cards[random_card] << "(Dimand)" << endl;
 						break;
 					}
 					case 3:
 					{
-						cout << "Trump suit : " << u8"♣(Clubs)" << endl;
+						char c = 5;
+						cout << "Trump suit : " << c << "(Clubs)" << endl;
 						cout << "Bottom card :" << cards[random_card] << "(Club)" << endl;
 						break;
 					}
@@ -101,18 +126,37 @@ int main()
 				cout << "> switch-nine" << endl << endl;
 				cout << "Player 1's turn" << endl << endl << '>';
 				const int SIZE_OF_HAND = 6;
-				string plear1_hand[SIZE_OF_HAND]{ 0 };
-				string plear2_hand[SIZE_OF_HAND]{ 0 };
-				cin >> comand;
-				if (comand == "hand")
+				string player1_hand[SIZE_OF_HAND] = {};
+				for (int i = 0; i < SIZE_OF_HAND; i++)
+				{
+					int random = rand() %25;
+					if (cards_with_colors[random] != "")
+					{
+						player1_hand[i] = cards_with_colors[random];
+						cards_with_colors[random] = "";
+					}
+					else
+					{
+						i--;
+					}
+				}
+				string player2_hand[SIZE_OF_HAND];
+				cin.ignore();
+				cin.getline(comand, SIZE);
+				if (CheckString(comand, "hand"))
+				{
+					for (int i = 0; i < SIZE_OF_HAND; i++)
+					{
+						cout << player1_hand[i] << ',';
+
+
+					}
+				}
+				else if (CheckString(comand, "play"))
 				{
 
 				}
-				else if (comand == "play")
-				{
-
-				}
-				else if (comand == "switch-nine")
+				else if (CheckString(comand, "switch-nine"))
 				{
 
 				}
@@ -120,7 +164,7 @@ int main()
 
 
 			}
-			else if (comand == "Computer vs Player" || comand == "c" || comand == "C")
+			else if (CheckString(comand, "Computer vs Player")  || CheckString(comand, "C") || CheckString(comand, "c"))
 			{
 				cout << "The game started!" << endl;
 				cout << "Trump suit : ♥(Hearts)" << endl;
@@ -128,7 +172,7 @@ int main()
 				cout << "Player 1’s turn" << endl;
 			}
 		}
-		else if (comand == "rules")
+		else if (CheckString(comand, "rules"))
 		{
 
 			cout << "SANTASE (66)\nEach player gets 6 cards.The Trump suit is chosen at random." << endl;
@@ -137,7 +181,7 @@ int main()
 			cout << " The first player to reach 66 points wins the round." << endl;
 
 		}
-		else if (comand == "settings")
+		else if (CheckString(comand, "settings"))
 		{
 			cout << "SANTASE (66)\n1) Target points to win[11]" << endl;
 			cout << "2) Marriage points(non - trump / trump)[20 / 40]" << endl;
