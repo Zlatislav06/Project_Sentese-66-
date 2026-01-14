@@ -9,8 +9,7 @@ const int MAX_SUITS = 9;
 const int ELEMENT = 3;
 const int CMD_SIZE = 100;
 const int HAND_COUNT = 6;
-
-
+const int MARRIAGE = 2;
 bool CheckString(char* string1, const char* string2)
 {
 	int size = 0;
@@ -248,6 +247,68 @@ int WinPoints(char* p1,char* p2,bool& winner)
 	}
 
 }
+void ReplaceWithLastCard(Card* deck,Card card)
+{
+	Card new_deck[DECK];
+	Card last_card = deck[DECK - 1];
+	for (int i = 0; i < DECK; i++)
+	{
+		if (CheckSuit(deck[i].suits, card.suits) && CheckSuit(deck[i].numbers, card.numbers))
+		{
+			new_deck[i] = last_card;
+		}
+		else if (CheckSuit(deck[i].suits, last_card.suits) && CheckSuit(deck[i].numbers, last_card.numbers))
+		{
+			new_deck[i] = card;
+		}
+		else
+		{
+			new_deck[i] = deck[i];
+		}
+		
+	}
+	for (int i = 0; i < DECK; i++)
+	{
+		*(deck + i) = new_deck[i];
+	}
+}
+void SwitchWithNine(Card* deck, Card * hand, Card nine)
+{
+	Card new_deck[DECK];
+	Card new_hand[HAND_COUNT];
+	Card last_card = deck[DECK - 1];
+	for (int i = 0; i < DECK; i++)
+	{
+		if (CheckSuit(deck[i].suits, last_card.suits) && CheckSuit(deck[i].numbers, last_card.numbers))
+		{
+			new_deck[i] = nine;
+		}
+		else
+		{
+			new_deck[i] = deck[i];
+		}
+
+	}
+	for (int i = 0; i < HAND_COUNT; i++)
+	{
+		if (CheckSuit(deck[i].suits, nine.suits) && CheckSuit(deck[i].numbers, nine.numbers))
+		{
+			new_hand[i] = last_card;
+		}
+		else
+		{
+			new_hand[i] = hand[i];
+		}
+	}
+	for (int i = 0; i < DECK; i++)
+	{
+		*(deck + i) = new_deck[i];
+	}
+	for (int i = 0; i < HAND_COUNT; i++)
+	{
+		*(hand + i) = new_hand[i];
+	}
+}
 int main()
 {
 	SetConsoleOutputCP(CP_UTF8);
@@ -255,8 +316,9 @@ int main()
 	
 	char comand[CMD_SIZE];
 	char bottom_card[CMD_SIZE];
-	
+	char marriage_suit[MAX_SUITS];
 	bool player_turn = true;
+	bool specials = false;
 
 	Card arr[DECK] = 
 	{
@@ -306,22 +368,27 @@ int main()
 					card_start_index_p2 += br;
 					card_end_index_p2 += br;
 					br = 0;
+					int index = 0;
 					for (int i = card_start_index_p1; i < card_end_index_p1; i++)
 					{
-						player1_hand[i] = arr[i + card_start_index_p1 + card_start_index_p2];
+						player1_hand[i] = arr[index + card_start_index_p1 + card_start_index_p2];
 						br++;
+						index++;
 					}
 					card_start_index_p1 += br;
 					br = 0;
+					index = 0;
 					for (int i = card_start_index_p2; i < card_end_index_p1; i++)
 					{
-						player2_hand[i] = arr[i + card_start_index_p1 + card_start_index_p2];
+						player2_hand[i] = arr[index + card_start_index_p1 + card_start_index_p2];
 						br++;
+						index++;
 					}
 					card_start_index_p2 += br;
 					br = 0;
 					Card bottom_card= arr[card_start_index_p1 + card_start_index_p2];
 					br++;
+					ReplaceWithLastCard(arr,bottom_card);
 					if (CheckSuit(bottom_card.suits, "Spades"))
 					{
 						
@@ -336,6 +403,7 @@ int main()
 						setColor(Color::Gray);
 						cout<< "\xE2\x99\xA0" << endl;
 						setColor(Color::White);
+
 					}
 					else if(CheckSuit(bottom_card.suits, "Hearts"))
 					{
@@ -381,13 +449,20 @@ int main()
 						cout<< "\xE2\x99\xA3" << endl;
 						setColor(Color::White);
 					}
+					
 					cout << endl;
-					while (true)
+					bool marrige = false;
+					while (card_start_index_p1+card_start_index_p2+br< DECK)
 					{
 						cout << "Players have several actions to control the hand:" << endl;
 						cout << "> hand" << endl;
 						cout << "> play" << endl;
 						cout << "> switch-nine" << endl;
+						if (specials)
+						{
+							cout << "> marriage" << endl;
+							cout << "> close" << endl;
+						}
 						if (player_turn)
 						{
 							cout << "Player 1's turn" << endl << endl << '>';
@@ -418,36 +493,95 @@ int main()
 						else if (CheckSuit(comand, "play") || CheckSuit(comand, "p"))
 						{
 							int index_p1,index_p2;
-							while (true)
-							{
-								cout << "Select the card you want to play using the index(0-5):";
-								cin >> index_p1;
-								if (index_p1 < 0 || index_p1>5)
-								{
-									setColor(Color::Red);
-									cout << "Invalid index! Try again!" << endl;
-									setColor(Color::White);
-								}
-								else
-								{
-									break;
-								}
-							}
+							
 							if (player_turn)
 							{
+								while (true)
+								{
+									cout << "Select the card you want to play using the index(0-5):";
+									cin >> index_p1;
+									if (index_p1 < 0 || index_p1>5)
+									{
+										setColor(Color::Red);
+										cout << "Invalid index! Try again!" << endl;
+										setColor(Color::White);
+									}
+									else
+									{
+										break;
+									}
+								}
 								cout << "You(P1) choose: " << player1_hand[index_p1].numbers;
 								printColor(player1_hand[index_p1]);
-								
-								
+								if (marrige)
+								{
+									
+									if (CheckSuit(player1_hand[index_p1].numbers, "K") || CheckSuit(player1_hand[index_p1].numbers, "Q"))
+									{
+										if (CheckSuit(marriage_suit, bottom_card.suits))
+										{
+											sum_p1 += 40;
+										}
+										else
+										{
+											sum_p1 += 20;
+										}
+									}
+									else
+									{
+										cout << "You have only marriage, if you play \"K\" and \"Q\" ";
+										continue;
+											
+									}
+								}
 							}
 							else
 							{
+								
+								while (true)
+								{
+									cout << "Select the card you want to play using the index(0-5):";
+									cin >> index_p2;
+									if (index_p2 < 0 || index_p2>5)
+									{
+										setColor(Color::Red);
+										cout << "Invalid index! Try again!" << endl;
+										setColor(Color::White);
+									}
+									else
+									{
+										break;
+									}
+								}
 								cout << "You(P2) choose: " << player2_hand[index_p2].numbers;
 								printColor(player2_hand[index_p2]);
+								if (marrige)
+								{
+
+									if (CheckSuit(player1_hand[index_p2].numbers, "K") || CheckSuit(player1_hand[index_p2].numbers, "Q"))
+									{
+										if (CheckSuit(marriage_suit, bottom_card.suits))
+										{
+											sum_p1 += 40;
+										}
+										else
+										{
+											sum_p1 += 20;
+										}
+									}
+									else
+									{
+										cout << "You have only marriage, if you play \"K\" and \"Q\" ";
+										continue;
+
+									}
+								}
+
 							}
 							cout << endl;
 							if (player_turn)
 							{
+
 								cout << "Player 2's turn" << endl<<endl;
 								cout << "Your hand(P2): [";
 								HandPrint(player2_hand);
@@ -474,10 +608,6 @@ int main()
 								int win_points = WinPoints(player1_hand[index_p1].numbers, player2_hand[index_p2].numbers, winner);
 								if (CheckSuit(player1_hand[index_p1].suits, player2_hand[index_p2].suits))
 								{
-									
-									
-										
-										
 										if (winner)
 										{
 											sum_p1 += win_points;
@@ -543,10 +673,6 @@ int main()
 								int win_points = WinPoints(player1_hand[index_p1].numbers, player2_hand[index_p2].numbers, winner);
 								if (CheckSuit(player1_hand[index_p1].suits, player2_hand[index_p2].suits))
 								{
-
-
-
-
 									if (winner)
 									{
 										sum_p2 += win_points;
@@ -590,9 +716,136 @@ int main()
 							cout << "P2: " << sum_p2 << endl;
 							
 						}
-						else if (CheckString(comand, "switch-nine"))
+						else if (CheckSuit(comand, "switch-nine"))
 						{
+							if (player_turn)
+							{
+								bool check_nine = false;
+								Card nine;
+								for (int i = 0; i < HAND_COUNT;i++)
+								{
+									if (CheckSuit(player1_hand[i].suits, bottom_card.suits) && CheckSuit(player1_hand[i].numbers, "9"))
+									{
+										nine = player1_hand[i];
+										check_nine = true;
+										break;
+									}
+								}
+								if (check_nine)
+								{
+									cout << "Player 1's switch with nine!"<<endl;
+									SwitchWithNine(arr, player1_hand, nine);
+								}
+								else
+								{
 
+								}
+								
+							}
+							else
+							{
+								bool check_nine = false;
+								Card nine;
+								for (int i = 0; i < HAND_COUNT; i++)
+								{
+									if (CheckSuit(player2_hand[i].suits, bottom_card.suits) && CheckSuit(player2_hand[i].numbers, "9"))
+									{
+										nine = player2_hand[i];
+										check_nine = true;
+										break;
+									}
+								}
+								if (check_nine)
+								{
+									cout << "Player 2's switch with nine!" << endl;
+									SwitchWithNine(arr, player2_hand, nine);
+								}
+								else
+								{
+
+								}
+							}
+						}
+						specials = true;
+						if (CheckSuit(comand, "marriage") || CheckSuit(comand, "m"))
+						{
+							
+							bool QK[MARRIAGE];
+							QK[0] = false;
+							QK[1] = false;
+							cout << "Plase write your suit from the marriage: ";
+							cin.getline(marriage_suit, MAX_SUITS+1);
+							cout << endl;
+							if (player_turn)
+							{
+								for (int i = 0; i < HAND_COUNT; i++)
+								{
+									if (CheckSuit(player1_hand[i].suits,marriage_suit) && CheckSuit(player1_hand[i].numbers,"Q"))
+									{
+										QK[0] = true;
+									}
+									if (CheckSuit(player1_hand[i].suits, marriage_suit) && CheckSuit(player1_hand[i].numbers, "K"))
+									{
+										QK[1] = true;
+									}
+								}
+								if (QK[0] && QK[1])
+								{
+									
+									marrige = true;
+								}
+								else
+								{
+									setColor(Color::Red);
+									cout << "Invalid merriage!!!";
+									setColor(Color::White);
+								}
+								
+							}
+							else
+							{
+									setColor(Color::Red);
+									cout << "You don't have a merriage!!!";
+									setColor(Color::White);
+							}
+						}
+						if (CheckSuit(comand, "close"))
+						{
+							if (player_turn)
+							{
+								if (sum_p1 >= 66)
+								{
+									setColor(Color::Green);
+									cout << "Player 1 win!!!"<<endl;
+									setColor(Color::White);
+								}
+								else
+								{
+									setColor(Color::Red);
+									cout << "Player 1 lose!!!" << endl;
+									setColor(Color::Green);
+									cout << "Player 2 win!!!" << endl;
+									setColor(Color::White);
+								}
+							}
+							else
+							{
+								if (sum_p2 >= 66)
+								{
+									setColor(Color::Green);
+									cout << "Player 2 win!!!" << endl;
+									setColor(Color::White);
+								}
+								else
+								{
+									setColor(Color::Red);
+									cout << "Player 2 lose!!!" << endl;
+									setColor(Color::Green);
+									cout << "Player 1 win!!!" << endl;
+									setColor(Color::White);
+								}
+							}
+							
 						}
 					}
 					
@@ -623,11 +876,13 @@ int main()
 			{
 
 			}
-			}
-			else
-			{
-
-			}
+		}
+		else
+		{
+			setColor(Color::Red);
+			cout << "Invalid cleaving!";
+			setColor(Color::White);
+		}
 	}
 	
 	cout << endl;
@@ -638,7 +893,7 @@ int main()
 
 	std::cout << "A\xE2\x99\xA0"; // A♠
 	setColor(Color::White);
-	std::cout << "\xE2\x99\xA0"; // Spade
+	std::cout << "\xE2\x99\xA0"; // Spades		
 	setColor(Color::Red);
 	std::cout << "\xE2\x99\xA5"; // Heart
 	std::cout << "\xE2\x99\xA6"; // Diamond
