@@ -27,6 +27,7 @@ bool CheckString(char* string1, const char* string2)
 	}
 	return check;
 }
+
 bool CheckSuit(char* string1, const char* string2)
 {
 	int size = 0;
@@ -40,6 +41,7 @@ bool CheckSuit(char* string1, const char* string2)
 		if (*(string1 + i) != *(string2 + i))
 		{
 			check = false;
+			break;
 		}
 	}
 	return check;
@@ -171,7 +173,7 @@ bool Cleaving(Card* deck,int index)
 {
 	bool check = true;
 	Card new_deck[DECK];
-	if (index < 1 && index>24)
+	if (index < 1 || index>24)
 	{
 		check = false;
 		return check;
@@ -195,6 +197,18 @@ void HandPrint(Card * hand)
 	cout << hand[0].numbers;
 	printColor(hand[0]);
 	for (int i = 1; i < HAND_COUNT; i++)
+	{
+		cout << ", ";
+		cout << hand[i].numbers;
+		printColor(hand[i]);
+
+	}
+}
+void HandPrintAfterDeck(Card* hand,int size)
+{
+	cout << hand[0].numbers;
+	printColor(hand[0]);
+	for (int i = 1; i < size; i++)
 	{
 		cout << ", ";
 		cout << hand[i].numbers;
@@ -250,7 +264,7 @@ int WinPoints(char* p1,char* p2,bool& winner)
 void ReplaceWithLastCard(Card* deck,Card card)
 {
 	Card new_deck[DECK];
-	Card last_card = deck[DECK - 1];
+	Card last_card = deck[DECK-1];
 	for (int i = 0; i < DECK; i++)
 	{
 		if (CheckSuit(deck[i].suits, card.suits) && CheckSuit(deck[i].numbers, card.numbers))
@@ -309,6 +323,29 @@ void SwitchWithNine(Card* deck, Card * hand, Card nine)
 		*(hand + i) = new_hand[i];
 	}
 }
+void CheckWithPrint(Card* arr)
+{
+	for (int i = 0; i < DECK; i++)
+	{
+		cout <<endl<<i+1<<") " << arr[i].numbers;
+		printColor(arr[i]);
+		cout << ", ";
+
+	}
+}
+bool SerachForCardFromEqualSuit(Card * hand,Card card,int size)
+{
+	bool check = false;
+	for (int i = 0; i < size; i++)
+	{
+		if (CheckSuit(hand[i].suits,card.suits))
+		{
+			check = true;
+			break;
+		}
+	}
+	return check;
+}
 int main()
 {
 	SetConsoleOutputCP(CP_UTF8);
@@ -319,7 +356,14 @@ int main()
 	char marriage_suit[MAX_SUITS];
 	bool player_turn = true;
 	bool specials = false;
-
+	bool check_nine = false;
+	int cards_of_hand = 6;
+	int points_p1 = 0;
+	int points_p2 = 0;
+	int round = 1;
+	bool winner = true;
+	bool check_close = true;
+	Card last_trick[MARRIAGE];
 	Card arr[DECK] = 
 	{
 		{"Spades","A"},{"Spades","10"},{"Spades","K"},{"Spades","Q"},{"Spades","J"},{"Spades","9"},
@@ -330,8 +374,7 @@ int main()
 	while (true)
 	{
 		Shuffle(arr);
-		if (Cleaving(arr, 25))
-		{
+		
 			cout << "If you want any of the following functions to be performed, please type one of the corresponding commands:\n";
 			cout << "> start" << endl;
 			cout << "> rules" << endl;
@@ -340,516 +383,1049 @@ int main()
 			cin.getline(comand, CMD_SIZE);
 			if (CheckString(comand, "start"))
 			{
-				cout << "You can choose whether to play against the computer or not." << endl;
-				cout << "> Player vs Player (p or P)" << endl;
-				cout << "> Computer vs Player (c or C)" << endl << endl << '>';
-				cin.ignore();
-				cin.getline(comand, CMD_SIZE);
-				if (CheckString(comand, "Player vs Player") || CheckString(comand, "P") || CheckString(comand, "p"))
-				{
-					int sum_p1 = 0, sum_p2 = 0;
-					cout << "The game started!" << endl;
-					Card player1_hand[HAND_COUNT];
-					Card player2_hand[HAND_COUNT];
-					int card_start_index_p1 = 0, card_end_index_p1 = 3, br = 0, card_start_index_p2 = 0, card_end_index_p2 = 3;
-					for (int i = card_start_index_p1; i < card_end_index_p1; i++)
+				int cleaving_index;
+				cout << "Player one chooses where to split the deck (write index of card):";
+				cin >> cleaving_index;
+				cout << endl;
+				
+					cout << "You can choose whether to play against the computer or not." << endl;
+					cout << "> Player vs Player (p or P)" << endl;
+					cout << "> Computer vs Player (c or C)" << endl << endl << '>';
+					cin.ignore();
+					cin.getline(comand, CMD_SIZE);
+					if (CheckString(comand, "Player vs Player") || CheckString(comand, "P") || CheckString(comand, "p"))
 					{
-						player1_hand[i] = arr[i + card_start_index_p1+ card_start_index_p2];
-						br++;
-					}
-					card_start_index_p1 += br;
-					card_end_index_p1 += br;
-					br = 0;
-					for (int i = card_start_index_p2; i < card_end_index_p2; i++)
-					{
-						player2_hand[i] = arr[i + card_start_index_p1+ card_start_index_p2];
-						br++;
-					}
-					card_start_index_p2 += br;
-					card_end_index_p2 += br;
-					br = 0;
-					int index = 0;
-					for (int i = card_start_index_p1; i < card_end_index_p1; i++)
-					{
-						player1_hand[i] = arr[index + card_start_index_p1 + card_start_index_p2];
-						br++;
-						index++;
-					}
-					card_start_index_p1 += br;
-					br = 0;
-					index = 0;
-					for (int i = card_start_index_p2; i < card_end_index_p1; i++)
-					{
-						player2_hand[i] = arr[index + card_start_index_p1 + card_start_index_p2];
-						br++;
-						index++;
-					}
-					card_start_index_p2 += br;
-					br = 0;
-					Card bottom_card= arr[card_start_index_p1 + card_start_index_p2];
-					br++;
-					ReplaceWithLastCard(arr,bottom_card);
-					if (CheckSuit(bottom_card.suits, "Spades"))
-					{
+						int sum_p1 = 0, sum_p2 = 0;
+						cout << "The game started!" << endl;
+						if (Cleaving(arr, cleaving_index))
+						{
+							Card player1_hand[HAND_COUNT];
+							Card player2_hand[HAND_COUNT];
+							int card_start_index_p1 = 0, card_end_index_p1 = 3, br = 0, card_start_index_p2 = 0, card_end_index_p2 = 3;
+							for (int i = card_start_index_p1; i < card_end_index_p1; i++)
+							{
+								player1_hand[i] = arr[i + card_start_index_p1+ card_start_index_p2];
+								br++;
+							}
+							card_start_index_p1 += br;
+							card_end_index_p1 += br;
+							br = 0;
+							for (int i = card_start_index_p2; i < card_end_index_p2; i++)
+							{
+								player2_hand[i] = arr[i + card_start_index_p1+ card_start_index_p2];
+								br++;
+							}
+							card_start_index_p2 += br;
+							card_end_index_p2 += br;
+							br = 0;
+							int index = 0;
+							for (int i = card_start_index_p1; i < card_end_index_p1; i++)
+							{
+								player1_hand[i] = arr[index + card_start_index_p1 + card_start_index_p2];
+								br++;
+								index++;
+							}
+							card_start_index_p1 += br;
+							br = 0;
+							index = 0;
+							for (int i = card_start_index_p2; i < card_end_index_p2; i++)
+							{
+								player2_hand[i] = arr[index + card_start_index_p1 + card_start_index_p2];
+								br++;
+								index++;
+							}
+							card_start_index_p2 += br;
+							br = 0;
+							Card bottom_card= arr[card_start_index_p1 + card_start_index_p2];
+							
+							ReplaceWithLastCard(arr,bottom_card);
+							
+							if (CheckSuit(bottom_card.suits, "Spades"))
+							{
 						
-						cout << "Trump suit:";
-						setColor(Color::Gray);
-						cout<< "\xE2\x99\xA0";
-						setColor(Color::White);
-						cout<< "(Spades)" << endl;
+								cout << "Trump suit:";
+								setColor(Color::Gray);
+								cout<< "\xE2\x99\xA0";
+								setColor(Color::White);
+								cout<< "(Spades)" << endl;
 
-						cout << "Bottom card:";
-						cout << bottom_card.numbers;
-						setColor(Color::Gray);
-						cout<< "\xE2\x99\xA0" << endl;
-						setColor(Color::White);
+								cout << "Bottom card:";
+								cout << bottom_card.numbers;
+								setColor(Color::Gray);
+								cout<< "\xE2\x99\xA0" << endl;
+								setColor(Color::White);
 
-					}
-					else if(CheckSuit(bottom_card.suits, "Hearts"))
-					{
-						cout << "Trump suit:";
-						setColor(Color::Red);
-						cout << "\xE2\x99\xA5";
-						setColor(Color::White);
-						cout << "(Hearts)" << endl;
+							}
+							else if(CheckSuit(bottom_card.suits, "Hearts"))
+							{
+								cout << "Trump suit:";
+								setColor(Color::Red);
+								cout << "\xE2\x99\xA5";
+								setColor(Color::White);
+								cout << "(Hearts)" << endl;
 
-						cout << "Bottom card:";
+								cout << "Bottom card:";
 						
-						cout << bottom_card.numbers;
-						setColor(Color::Red);
-						cout<< "\xE2\x99\xA5" << endl;
-						setColor(Color::White);
-					}
-					else if (CheckSuit(bottom_card.suits, "Diamonds"))
-					{
-						cout << "Trump suit:";
-						setColor(Color::Red);
-						cout << "\xE2\x99\xA6";
-						setColor(Color::White);
-						cout << "(Diamonds)" << endl;
+								cout << bottom_card.numbers;
+								setColor(Color::Red);
+								cout<< "\xE2\x99\xA5" << endl;
+								setColor(Color::White);
+							}
+							else if (CheckSuit(bottom_card.suits, "Diamonds"))
+							{
+								cout << "Trump suit:";
+								setColor(Color::Red);
+								cout << "\xE2\x99\xA6";
+								setColor(Color::White);
+								cout << "(Diamonds)" << endl;
 
-						cout << "Bottom card:";
+								cout << "Bottom card:";
 						
-						cout << bottom_card.numbers;
-						setColor(Color::Red);
-						cout<< "\xE2\x99\xA6" << endl;
-						setColor(Color::White);
-					}
-					else if (CheckSuit(bottom_card.suits, "Clubs"))
-					{
-						cout << "Trump suit:";
-						setColor(Color::Gray);
-						cout << "\xE2\x99\xA3";
-						setColor(Color::White);
-						cout << "(Clubs)" << endl;
+								cout << bottom_card.numbers;
+								setColor(Color::Red);
+								cout<< "\xE2\x99\xA6" << endl;
+								setColor(Color::White);
+							}
+							else if (CheckSuit(bottom_card.suits, "Clubs"))
+							{
+								cout << "Trump suit:";
+								setColor(Color::Gray);
+								cout << "\xE2\x99\xA3";
+								setColor(Color::White);
+								cout << "(Clubs)" << endl;
 
-						cout << "Bottom card:";
-						cout << bottom_card.numbers;
-						setColor(Color::Gray);
-						cout<< "\xE2\x99\xA3" << endl;
-						setColor(Color::White);
-					}
+								cout << "Bottom card:";
+								cout << bottom_card.numbers;
+								setColor(Color::Gray);
+								cout<< "\xE2\x99\xA3" << endl;
+								setColor(Color::White);
+							}
 					
-					cout << endl;
-					bool marrige = false;
-					while (card_start_index_p1+card_start_index_p2+br< DECK)
-					{
-						cout << "Players have several actions to control the hand:" << endl;
-						cout << "> hand" << endl;
-						cout << "> play" << endl;
-						cout << "> switch-nine" << endl;
-						if (specials)
-						{
-							cout << "> marriage" << endl;
-							cout << "> close" << endl;
-						}
-						if (player_turn)
-						{
-							cout << "Player 1's turn" << endl << endl << '>';
+							cout << endl;
+							bool marrige = false;
+							while (cards_of_hand> 0)
+							{
+							
+									cout << "Players have several actions to control the hand:" << endl;
+									cout << "> hand" << endl;
+									cout << "> play" << endl;
+									
+									
+									if (specials)
+									{
+										if (!check_nine)
+										{
+											cout << "> switch-nine" << endl;
+										}
+										cout << "> marriage" << endl;
+										if (check_close)
+										{
+											cout << "> close" << endl;
+										}
+										cout << "> information" << endl;
+										cout << "> end" << endl;
+									}
+									if (player_turn)
+									{
+										cout << "Player 1's turn" << endl << endl << '>';
+									}
+									else
+									{
+										cout << "Player 2's turn" << endl << endl << '>';
+									}
+								
+									cin.getline(comand, CMD_SIZE);
+									if (CheckSuit(comand, "hand") || CheckSuit(comand, "h"))
+									{
+										cout << endl;
+										if (cards_of_hand== HAND_COUNT)
+										{
+											if (player_turn)
+											{
+												cout << "Your hand(P1): [";
+												HandPrint(player1_hand);
+												cout << "]";
+											}
+											else
+											{
+												cout << "Your hand(P2): [";
+												HandPrint(player2_hand);
+												cout << "]";
+											}
+										}
+										else
+										{
+											if (player_turn)
+											{
+												cout << "Your hand(P1): [";
+												HandPrintAfterDeck(player1_hand,cards_of_hand);
+												cout << "]";
+											}
+											else
+											{
+												cout << "Your hand(P2): [";
+												HandPrintAfterDeck(player2_hand, cards_of_hand);
+												cout << "]";
+											}
+										}
+									
+										cout << endl << endl;
+									}
+									else if (CheckSuit(comand, "play") || CheckSuit(comand, "p"))
+									{
+										specials = true;
+										int index_p1, index_p2;
+										if (card_start_index_p1 + card_start_index_p2 + br < DECK)
+										{
+											if (player_turn)
+											{
+												while (true)
+												{
+													cout << "Select the card you want to play using the index(0-5):";
+													cin >> index_p1;
+													if (index_p1 < 0 || index_p1>5)
+													{
+														setColor(Color::Red);
+														cout << "Invalid index! Try again!" << endl;
+														setColor(Color::White);
+													
+													}
+													else
+													{
+														break;
+													}
+												
+												}
+												cout << "You(P1) choose: " << player1_hand[index_p1].numbers;
+												printColor(player1_hand[index_p1]);
+												if (marrige)
+												{
+
+													if (CheckSuit(player1_hand[index_p1].numbers, "K") || CheckSuit(player1_hand[index_p1].numbers, "Q"))
+													{
+														marrige = false;
+														if (CheckSuit(marriage_suit, bottom_card.suits))
+														{
+															sum_p1 += 40;
+														}
+														else
+														{
+															sum_p1 += 20;
+														}
+													}
+													else
+													{
+														cout << endl << "You have only marriage, if you play \"K\" and \"Q\" " << endl;
+														continue;
+
+													}
+												}
+											}
+											else
+											{
+
+												while (true)
+												{
+													cout << "Select the card you want to play using the index(0-5):";
+													cin >> index_p2;
+													if (index_p2 < 0 || index_p2>5)
+													{
+														setColor(Color::Red);
+														cout << "Invalid index! Try again!" << endl;
+														setColor(Color::White);
+													
+													}
+													else
+													{
+														break;
+													}
+											
+												}
+												cout << "You(P2) choose: " << player2_hand[index_p2].numbers;
+												printColor(player2_hand[index_p2]);
+												if (marrige)
+												{
+
+													if (CheckSuit(player2_hand[index_p2].numbers, "K") || CheckSuit(player2_hand[index_p2].numbers, "Q"))
+													{
+														marrige = false;
+														if (CheckSuit(marriage_suit, bottom_card.suits))
+														{
+															sum_p2 += 40;
+														}
+														else
+														{
+															sum_p2 += 20;
+														}
+													}
+													else
+													{
+														cout << endl << "You have only marriage, if you play \"K\" and \"Q\" " << endl;
+														continue;
+
+													}
+												}
+
+											}
+											cout << endl;
+											if (player_turn)
+											{
+
+												cout << "Player 2's turn" << endl << endl;
+												cout << "Your hand(P2): [";
+												HandPrint(player2_hand);
+												cout << "]" << endl << endl;
+												cout << "Select the card you want to play using the index(0-5):";
+												cin >> index_p2;
+												while (true)
+												{
+													if (index_p2 < 0 || index_p2>5)
+													{
+														setColor(Color::Red);
+														cout << "Invalid index! Try again!" << endl;
+														setColor(Color::White);
+													
+													}
+													else
+													{
+														break;
+													}
+													cout << "Select the card you want to play using the index(0-5):";
+													cin >> index_p2;
+												}
+
+												cout << "You(P2) choose: " << player2_hand[index_p2].numbers;
+												printColor(player2_hand[index_p2]);
+												winner = true;
+												int win_points = WinPoints(player1_hand[index_p1].numbers, player2_hand[index_p2].numbers, winner);
+												if (CheckSuit(player1_hand[index_p1].suits, player2_hand[index_p2].suits))
+												{
+													if (winner)
+													{
+														sum_p1 += win_points;
+														player_turn = true;
+													}
+													else
+													{
+														sum_p2 += win_points;
+														player_turn = false;
+													}
+												}
+												else
+												{
+													if (CheckSuit(player1_hand[index_p1].suits, bottom_card.suits))
+													{
+														sum_p1 += Points(player2_hand[index_p2].numbers) + Points(player1_hand[index_p1].numbers);
+														player_turn = true;
+													}
+													else if (CheckSuit(player2_hand[index_p2].suits, bottom_card.suits))
+													{
+														sum_p2 += Points(player2_hand[index_p2].numbers) + Points(player1_hand[index_p1].numbers);
+														player_turn = false;
+													}
+													else
+													{
+
+														sum_p1 += Points(player2_hand[index_p2].numbers) + Points(player1_hand[index_p1].numbers);
+														player_turn = true;
+													}
+												}
+												last_trick[0]= player1_hand[index_p1];
+												last_trick[1] = player2_hand[index_p2];
+												player1_hand[index_p1] = arr[card_start_index_p1 + card_start_index_p2 + br];
+												br++;
+												player2_hand[index_p2] = arr[card_start_index_p1 + card_start_index_p2 + br];
+												br++;
+												int can_not_close = DECK - 3;
+												if ((card_start_index_p1 + card_start_index_p2 + br) < can_not_close)
+												{
+													check_close = true;
+												}
+												else
+												{
+													check_close = false;
+												}
+
+
+											}
+											else
+											{
+												cout << "Player 1's turn" << endl << endl;
+												cout << "Your hand(P1): [";
+												HandPrint(player1_hand);
+												cout << "]" << endl << endl;
+												cout << "Select the card you want to play using the index(0-5):";
+												cin >> index_p1;
+												while (true)
+												{
+													if (index_p1 < 0 || index_p1>5)
+													{
+														setColor(Color::Red);
+														cout << "Invalid index! Try again!" << endl;
+														setColor(Color::White);
+												
+													}
+													else
+													{
+														break;
+													}
+													cout << "Select the card you want to play using the index(0-5):";
+													cin >> index_p1;
+												}
+
+												cout << "You(P1) choose: " << player1_hand[index_p1].numbers;
+												printColor(player1_hand[index_p1]);
+												winner = false;
+												int win_points = WinPoints(player2_hand[index_p2].numbers, player1_hand[index_p1].numbers, winner);
+												if (CheckSuit(player1_hand[index_p1].suits, player2_hand[index_p2].suits))
+												{
+													if (winner)
+													{
+														sum_p2 += win_points;
+														player_turn = false;
+													}
+													else
+													{
+														sum_p1 += win_points;
+														player_turn = true;
+													}
+												}
+												else
+												{
+													if (CheckSuit(player1_hand[index_p1].suits, bottom_card.suits))
+													{
+														sum_p1 += Points(player2_hand[index_p2].numbers) + Points(player1_hand[index_p1].numbers);
+														player_turn = true;
+													}
+													else if (CheckSuit(player2_hand[index_p2].suits, bottom_card.suits))
+													{
+														sum_p2 += Points(player2_hand[index_p2].numbers) + Points(player1_hand[index_p1].numbers);
+														player_turn = false;
+													}
+													else
+													{
+
+														sum_p2 += Points(player2_hand[index_p2].numbers) + Points(player1_hand[index_p1].numbers);
+														player_turn = false;
+													}
+												}
+												last_trick[0] = player1_hand[index_p1];
+												last_trick[1] = player2_hand[index_p2];
+												player2_hand[index_p2] = arr[card_start_index_p1 + card_start_index_p2 + br];
+												br++;
+												player1_hand[index_p1] = arr[card_start_index_p1 + card_start_index_p2 + br];
+												br++;
+												int can_not_close = DECK - 3;
+												if ((card_start_index_p1 + card_start_index_p2 + br) < can_not_close)
+												{
+													check_close = true;
+												}
+												else
+												{
+													check_close = false;
+												}
+											}
+										}
+										else
+										{
+											if (player_turn)
+											{
+												while (true)
+												{
+													cout << "Select the card you want to play using the index(0-" << cards_of_hand-1 << "):";
+													cin >> index_p1;
+													if (index_p1 < 0 || index_p1>cards_of_hand-1)
+													{
+														setColor(Color::Red);
+														cout << "Invalid index! Try again!" << endl;
+														setColor(Color::White);
+													}
+													else
+													{
+														break;
+													}
+												}
+												cout << "You(P1) choose: " << player1_hand[index_p1].numbers;
+												printColor(player1_hand[index_p1]);
+												if (marrige)
+												{
+
+													if (CheckSuit(player1_hand[index_p1].numbers, "K") || CheckSuit(player1_hand[index_p1].numbers, "Q"))
+													{
+														marrige = false;
+														if (CheckSuit(marriage_suit, bottom_card.suits))
+														{
+															sum_p1 += 40;
+														}
+														else
+														{
+															sum_p1 += 20;
+														}
+													}
+													else
+													{
+														cout << endl << "You have only marriage, if you play \"K\" and \"Q\" " << endl;
+													
+
+													}
+												}
+											}
+											else
+											{
+
+												while (true)
+												{
+													cout << "Select the card you want to play using the index(0-"<< cards_of_hand-1<<"):";
+													cin >> index_p2;
+													if (index_p2 < 0 || index_p2>cards_of_hand-1)
+													{
+														setColor(Color::Red);
+														cout << "Invalid index! Try again!" << endl;
+														setColor(Color::White);
+													}
+													else
+													{
+														break;
+													}
+												}
+												cout << "You(P2) choose: " << player2_hand[index_p2].numbers;
+												printColor(player2_hand[index_p2]);
+												if (marrige)
+												{
+
+													if (CheckSuit(player2_hand[index_p2].numbers, "K") || CheckSuit(player2_hand[index_p2].numbers, "Q"))
+													{
+														marrige = false;
+														if (CheckSuit(marriage_suit, bottom_card.suits))
+														{
+															sum_p2 += 40;
+														}
+														else
+														{
+															sum_p2 += 20;
+														}
+													}
+													else
+													{
+														cout << endl << "You have only marriage, if you play \"K\" and \"Q\" " << endl;
+														continue;
+
+													}
+												}
+
+											}
+											cout << endl;
+											if (player_turn)
+											{
+
+												cout << "Player 2's turn" << endl << endl;
+												cout << "Your hand(P2): [";
+												HandPrintAfterDeck(player2_hand, cards_of_hand);
+												cout << "]" << endl << endl;
+												while (true)
+												{
+													cout << "Select the card you want to play using the index(0-" << cards_of_hand - 1 << "):";
+													cin >> index_p2;
+													
+												
+														if (index_p2 < 0 || index_p2>5)
+														{
+															setColor(Color::Red);
+															cout << "Invalid index! Try again!" << endl;
+															setColor(Color::White);
+														}
+														else
+														{
+															if (CheckSuit(player2_hand[index_p2].suits, player1_hand[index_p1].suits))
+															{
+																break;
+															}
+															else
+															{
+																if (SerachForCardFromEqualSuit(player2_hand, player1_hand[index_p1], cards_of_hand))
+																{
+																	setColor(Color::Red);
+																	cout << "Please, choose a card of the same suit!" << endl;
+																	setColor(Color::LightYellow);
+																	cout << "We know you have it! ;)" << endl;
+																}
+																else
+																{
+																	if (CheckSuit(player2_hand[index_p2].suits, bottom_card.suits))
+																	{
+																		break;
+																	}
+																	else
+																	{
+																		if (SerachForCardFromEqualSuit(player2_hand, bottom_card, cards_of_hand))
+																		{
+																			setColor(Color::Red);
+																			cout << "Please, choose a card of the main suit!" << endl;
+																			setColor(Color::LightYellow);
+																			cout << "We know you have it! ;)" << endl;
+																		}
+																		else
+																		{
+																			break;
+																		}
+																	}
+																	
+																}
+																setColor(Color::White);
+															}
+														}
+													
+													
+												}
+
+												cout << "You(P2) choose: " << player2_hand[index_p2].numbers;
+												printColor(player2_hand[index_p2]);
+												 winner = true;
+												int win_points = WinPoints(player1_hand[index_p1].numbers, player2_hand[index_p2].numbers, winner);
+												if (CheckSuit(player1_hand[index_p1].suits, player2_hand[index_p2].suits))
+												{
+													if (winner)
+													{
+														sum_p1 += win_points;
+														player_turn = true;
+													}
+													else
+													{
+														sum_p2 += win_points;
+														player_turn = false;
+													}
+												}
+												else
+												{
+													if (CheckSuit(player1_hand[index_p1].suits, bottom_card.suits))
+													{
+														sum_p1 += Points(player2_hand[index_p2].numbers) + Points(player1_hand[index_p1].numbers);
+														player_turn = true;
+													}
+													else if (CheckSuit(player2_hand[index_p2].suits, bottom_card.suits))
+													{
+														sum_p2 += Points(player2_hand[index_p2].numbers) + Points(player1_hand[index_p1].numbers);
+														player_turn = false;
+													}
+													else
+													{
+
+														sum_p1 += Points(player2_hand[index_p2].numbers) + Points(player1_hand[index_p1].numbers);
+														player_turn = true;
+													}
+												}
+												last_trick[0] = player1_hand[index_p1];
+												last_trick[1] = player2_hand[index_p2];
+												for (int i = index_p1; i < cards_of_hand-1; i++)
+												{
+													player1_hand[i] = player1_hand[i + 1];
+												}
+												for (int i = index_p2; i < cards_of_hand-1; i++)
+												{
+													player2_hand[i] = player2_hand[i + 1];
+												}
+												cards_of_hand--;
+											
+
+
+											}
+											else
+											{
+												cout << "Player 1's turn" << endl << endl;
+												cout << "Your hand(P1): [";
+												HandPrintAfterDeck(player1_hand,cards_of_hand);
+												cout << "]" << endl << endl;
+											
+												while (true)
+												{
+
+													cout << "Select the card you want to play using the index(0-"<< cards_of_hand-1<<"):";
+													cin >> index_p1;
+													if (index_p1 < 0 || index_p1>cards_of_hand-1)
+													{
+														setColor(Color::Red);
+														cout << "Invalid index! Try again!" << endl;
+														setColor(Color::White);
+													}
+													else
+													{
+														if (CheckSuit(player2_hand[index_p2].suits, player1_hand[index_p1].suits))
+														{
+															break;
+														}
+														else
+														{
+															if (SerachForCardFromEqualSuit(player1_hand, player2_hand[index_p2], cards_of_hand))
+															{
+																setColor(Color::Red);
+																cout << "Please, choose a card of the same suit!" << endl;
+																setColor(Color::LightYellow);
+																cout << "We know you have it! ;)" << endl;
+															}
+															else
+															{
+																if (CheckSuit(player1_hand[index_p1].suits, bottom_card.suits))
+																{
+																	break;
+																}
+																else
+																{
+																	if (SerachForCardFromEqualSuit(player1_hand, bottom_card, cards_of_hand))
+																	{
+																		setColor(Color::Red);
+																		cout << "Please, choose a card of the main suit!" << endl;
+																		setColor(Color::LightYellow);
+																		cout << "We know you have it! ;)" << endl;
+																	}
+																	else
+																	{
+																		break;
+																	}
+																}
+																
+															}
+															setColor(Color::White);
+														}
+													}
+
+													
+												}
+
+												cout << "You(P1) choose: " << player1_hand[index_p1].numbers;
+												printColor(player1_hand[index_p1]);
+												 winner = false;
+												int win_points = WinPoints(player2_hand[index_p2].numbers, player1_hand[index_p1].numbers, winner);
+												if (CheckSuit(player1_hand[index_p1].suits, player2_hand[index_p2].suits))
+												{
+													if (winner)
+													{
+														sum_p2 += win_points;
+														player_turn = false;
+													}
+													else
+													{
+														sum_p1 += win_points;
+														player_turn = true;
+													}
+												}
+												else
+												{
+													if (CheckSuit(player1_hand[index_p1].suits, bottom_card.suits))
+													{
+														sum_p1 += Points(player2_hand[index_p2].numbers) + Points(player1_hand[index_p1].numbers);
+														player_turn = true;
+													}
+													else if (CheckSuit(player2_hand[index_p2].suits, bottom_card.suits))
+													{
+														sum_p2 += Points(player2_hand[index_p2].numbers) + Points(player1_hand[index_p1].numbers);
+														player_turn = false;
+													}
+													else
+													{
+
+														sum_p2 += Points(player2_hand[index_p2].numbers) + Points(player1_hand[index_p1].numbers);
+														player_turn = false;
+													}
+												}
+
+												last_trick[0] = player1_hand[index_p1];
+												last_trick[1] = player2_hand[index_p2];
+												for (int i = index_p1; i < cards_of_hand-1; i++)
+												{
+													player1_hand[i] = player1_hand[i + 1];
+												}
+												for (int i = index_p2; i < cards_of_hand-1; i++)
+												{
+													player2_hand[i] = player2_hand[i + 1];
+												}
+												cards_of_hand--;
+											}
+											}
+										cout << endl << endl;
+										cout << "Result:" << endl;
+										cout << "P1: " << sum_p1 << endl;
+										cout << "P2: " << sum_p2 << endl;
+
+									}
+									else if (CheckSuit(comand, "switch-nine") || CheckSuit(comand, "sw"))
+									{
+										if (player_turn)
+										{
+										
+											Card nine;
+											for (int i = 0; i < HAND_COUNT; i++)
+											{
+												if (CheckSuit(player1_hand[i].suits, bottom_card.suits) && CheckSuit(player1_hand[i].numbers, "9"))
+												{
+													nine = player1_hand[i];
+													check_nine = true;
+													break;
+												}
+											}
+											if (check_nine)
+											{
+												cout << "Player 1's switch with nine!" << endl;
+												SwitchWithNine(arr, player1_hand, nine);
+											}
+											else
+											{
+												setColor(Color::Red);
+												cout << "You don't have this nine!!!";
+												setColor(Color::White);
+											}
+
+										}
+										else
+										{
+										
+											Card nine;
+											for (int i = 0; i < HAND_COUNT; i++)
+											{
+												if (CheckSuit(player2_hand[i].suits, bottom_card.suits) && CheckSuit(player2_hand[i].numbers, "9"))
+												{
+													nine = player2_hand[i];
+													check_nine = true;
+													break;
+												}
+											}
+											if (check_nine)
+											{
+												cout << "Player 2's switch with nine!" << endl;
+												SwitchWithNine(arr, player2_hand, nine);
+											}
+											else
+											{
+												setColor(Color::Red);
+												cout << "You don't have this nine!!!";
+												setColor(Color::White);
+											}
+										}
+									}
+								
+									if (CheckSuit(comand, "marriage") || CheckSuit(comand, "m"))
+									{
+
+										bool QK[MARRIAGE];
+										QK[0] = false;
+										QK[1] = false;
+										cout << "Plase write your suit from the marriage(Spades, Hearts, Diamonds, Clubs): ";
+										cin.getline(marriage_suit, MAX_SUITS + 1);
+										cout << endl;
+										if (player_turn)
+										{
+											for (int i = 0; i < HAND_COUNT; i++)
+											{
+												if (CheckSuit(player1_hand[i].suits, marriage_suit) && CheckSuit(player1_hand[i].numbers, "Q"))
+												{
+													QK[0] = true;
+												}
+												if (CheckSuit(player1_hand[i].suits, marriage_suit) && CheckSuit(player1_hand[i].numbers, "K"))
+												{
+													QK[1] = true;
+												}
+											}
+											if (QK[0] && QK[1])
+											{
+
+												marrige = true;
+											}
+											else
+											{
+												setColor(Color::Red);
+												cout << "You don't have a merriage!!!";
+												setColor(Color::White);
+											}
+
+										}
+										else
+										{
+											for (int i = 0; i < HAND_COUNT; i++)
+											{
+												if (CheckSuit(player2_hand[i].suits, marriage_suit) && CheckSuit(player2_hand[i].numbers, "Q"))
+												{
+													QK[0] = true;
+												}
+												if (CheckSuit(player2_hand[i].suits, marriage_suit) && CheckSuit(player2_hand[i].numbers, "K"))
+												{
+													QK[1] = true;
+												}
+											}
+											if (QK[0] && QK[1])
+											{
+
+												marrige = true;
+											}
+											else
+											{
+												setColor(Color::Red);
+												cout << "You don't have a merriage!!!";
+												setColor(Color::White);
+											}
+
+										}
+									}
+									if (CheckSuit(comand, "close") || CheckSuit(comand, "c"))
+									{
+										if (specials && check_close)
+										{
+											cout <<endl<< "Stock closed. No more cards will be drawn." << endl << "Strict rules are now in effect"<<endl;
+											br = br + 20;
+										}
+										else
+										{
+											setColor(Color::Red);
+											cout << "Invalid action!!!";
+											setColor(Color::White);
+										}
+										
+										
+
+									}
+									if (CheckSuit(comand, "end") || CheckSuit(comand, "e"))
+									{
+										if (player_turn)
+										{
+											
+											if (sum_p1 >= 66)
+											{
+												if (sum_p2 >= 33)
+												{
+													points_p1 += 1;
+												}
+												else if(sum_p2 < 33)
+												{
+													points_p1 += 2;
+												}
+												else if (sum_p2 == 0)
+												{
+													points_p1 += 3;
+												}
+												setColor(Color::Green);
+												cout << "Player 1 win!!!" << endl;
+												setColor(Color::White);
+											}
+											else
+											{
+												if (sum_p1 >= 33)
+												{
+													points_p2 += 1;
+												}
+												else if (sum_p1 < 33)
+												{
+													points_p2 += 2;
+												}
+												else if (sum_p1 == 0)
+												{
+													points_p2 += 3;
+												}
+												setColor(Color::Red);
+												cout << "Player 1 lose!!!" << endl;
+												setColor(Color::Green);
+												cout << "Player 2 win!!!" << endl;
+												setColor(Color::White);
+											}
+										}
+										else
+										{
+											if (sum_p2 >= 66)
+											{
+												if (sum_p1 >= 33)
+												{
+													points_p2 += 1;
+												}
+												else if (sum_p1 < 33)
+												{
+													points_p2 += 2;
+												}
+												else if (sum_p1 == 0)
+												{
+													points_p2 += 3;
+												}
+												setColor(Color::Green);
+												cout << "Player 2 win!!!" << endl;
+												setColor(Color::White);
+											}
+											else
+											{
+												if (sum_p2 >= 33)
+												{
+													points_p1 += 1;
+												}
+												else if (sum_p2 < 33)
+												{
+													points_p1 += 2;
+												}
+												else if (sum_p2 == 0)
+												{
+													points_p1 += 3;
+												}
+												setColor(Color::Red);
+												cout << "Player 2 lose!!!" << endl;
+												setColor(Color::Green);
+												cout << "Player 1 win!!!" << endl;
+												setColor(Color::White);
+											}
+										}
+										break;
+									}
+									if (CheckSuit(comand, "information") || CheckSuit(comand, "i"))
+									{
+										cout << "The player can see through these actions all the information about the specific game:"<<endl;
+										cout << "> last-trick" << endl;
+										cout << "> trump" << endl;
+										cout << "> history" << endl;
+										cout << "> status " << endl<<endl<<"<";
+										cin.getline(comand, CMD_SIZE);
+										if (CheckSuit(comand, "last-trick") || CheckSuit(comand, "l"))
+										{
+											cout <<endl<< "Player 1:"<<last_trick[0].numbers;
+											printColor(last_trick[0]);
+											cout <<endl << "Player 2:" << last_trick[1].numbers;
+											printColor(last_trick[1]);
+											if (winner)
+											{
+												setColor(Color::Green);
+												cout<<endl << "Winner: Player 1"<<endl;
+											}
+											else
+											{
+												setColor(Color::Green);
+												cout << endl << "Winner: Player 2"<<endl;
+											}
+											setColor(Color::White);
+										}
+										else if (CheckSuit(comand, "trump") || CheckSuit(comand, "t"))
+										{
+											cout<<endl << "Trump:";
+											printColor(bottom_card);
+											cout << endl;
+										}
+										else if (CheckSuit(comand, "history") || CheckSuit(comand, "h"))
+										{
+
+										}
+										else if (CheckSuit(comand, "status") || CheckSuit(comand, "status"))
+										{
+
+										}
+										cout << endl;
+
+									}
+							
+							
+							}
 						}
 						else
 						{
-							cout << "Player 2's turn" << endl << endl << '>';
-						}
-						
-						cin.getline(comand, CMD_SIZE);
-						if (CheckSuit(comand, "hand"))
-						{
-							cout << endl;
-							if (player_turn)
-							{
-								cout << "Your hand(P1): [";
-								HandPrint(player1_hand);
-								cout << "]";
-							}
-							else
-							{
-								cout << "Your hand(P2): [";
-								HandPrint(player2_hand);
-								cout << "]";
-							}
-							cout << endl<<endl;
-						}
-						else if (CheckSuit(comand, "play") || CheckSuit(comand, "p"))
-						{
-							int index_p1,index_p2;
-							
-							if (player_turn)
-							{
-								while (true)
-								{
-									cout << "Select the card you want to play using the index(0-5):";
-									cin >> index_p1;
-									if (index_p1 < 0 || index_p1>5)
-									{
-										setColor(Color::Red);
-										cout << "Invalid index! Try again!" << endl;
-										setColor(Color::White);
-									}
-									else
-									{
-										break;
-									}
-								}
-								cout << "You(P1) choose: " << player1_hand[index_p1].numbers;
-								printColor(player1_hand[index_p1]);
-								if (marrige)
-								{
-									
-									if (CheckSuit(player1_hand[index_p1].numbers, "K") || CheckSuit(player1_hand[index_p1].numbers, "Q"))
-									{
-										if (CheckSuit(marriage_suit, bottom_card.suits))
-										{
-											sum_p1 += 40;
-										}
-										else
-										{
-											sum_p1 += 20;
-										}
-									}
-									else
-									{
-										cout << "You have only marriage, if you play \"K\" and \"Q\" ";
-										continue;
-											
-									}
-								}
-							}
-							else
-							{
-								
-								while (true)
-								{
-									cout << "Select the card you want to play using the index(0-5):";
-									cin >> index_p2;
-									if (index_p2 < 0 || index_p2>5)
-									{
-										setColor(Color::Red);
-										cout << "Invalid index! Try again!" << endl;
-										setColor(Color::White);
-									}
-									else
-									{
-										break;
-									}
-								}
-								cout << "You(P2) choose: " << player2_hand[index_p2].numbers;
-								printColor(player2_hand[index_p2]);
-								if (marrige)
-								{
-
-									if (CheckSuit(player1_hand[index_p2].numbers, "K") || CheckSuit(player1_hand[index_p2].numbers, "Q"))
-									{
-										if (CheckSuit(marriage_suit, bottom_card.suits))
-										{
-											sum_p1 += 40;
-										}
-										else
-										{
-											sum_p1 += 20;
-										}
-									}
-									else
-									{
-										cout << "You have only marriage, if you play \"K\" and \"Q\" ";
-										continue;
-
-									}
-								}
-
-							}
-							cout << endl;
-							if (player_turn)
-							{
-
-								cout << "Player 2's turn" << endl<<endl;
-								cout << "Your hand(P2): [";
-								HandPrint(player2_hand);
-								cout << "]"<<endl<<endl;
-								cout << "Select the card you want to play using the index(0-5):";
-								cin >> index_p2;
-								while (true)
-								{
-									if (index_p2 < 0 || index_p2>5)
-									{
-										setColor(Color::Red);
-										cout << "Invalid index! Try again!" << endl;
-										setColor(Color::White);
-									}
-									else
-									{
-										break;
-									}
-								}
-								
-								cout << "You(P2) choose: " << player2_hand[index_p2].numbers;
-								printColor(player2_hand[index_p2]);
-								bool winner = true;
-								int win_points = WinPoints(player1_hand[index_p1].numbers, player2_hand[index_p2].numbers, winner);
-								if (CheckSuit(player1_hand[index_p1].suits, player2_hand[index_p2].suits))
-								{
-										if (winner)
-										{
-											sum_p1 += win_points;
-											player_turn = true;
-										}
-										else
-										{
-											sum_p2 += win_points;
-											player_turn = false;
-										}
-								}
-								else
-								{
-									if (CheckSuit(player1_hand[index_p1].suits, bottom_card.suits))
-									{
-										sum_p1 += Points(player2_hand[index_p2].numbers) + Points(player1_hand[index_p1].numbers);
-										player_turn = true;
-									}
-									else if (CheckSuit(player2_hand[index_p2].suits, bottom_card.suits))
-									{
-										sum_p2 += Points(player2_hand[index_p2].numbers)+ Points(player1_hand[index_p1].numbers);
-										player_turn = false;
-									}
-									else
-									{
-
-										sum_p1 += Points(player2_hand[index_p2].numbers) + Points(player1_hand[index_p1].numbers);
-										player_turn = true;
-									}
-								}
-								player1_hand[index_p1] = arr[card_start_index_p1 + card_start_index_p2 + br];
-								br++;
-								player2_hand[index_p2] = arr[card_start_index_p1 + card_start_index_p2 + br];
-								br++;
-
-
-							}
-							else
-							{
-								cout << "Player 1's turn" << endl << endl;
-								cout << "Your hand(P1): [";
-								HandPrint(player1_hand);
-								cout << "]" << endl << endl;
-								cout << "Select the card you want to play using the index(0-5):";
-								cin >> index_p1;
-								while (true)
-								{
-									if (index_p1 < 0 || index_p1>5)
-									{
-										setColor(Color::Red);
-										cout << "Invalid index! Try again!" << endl;
-										setColor(Color::White);
-									}
-									else
-									{
-										break;
-									}
-								}
-
-								cout << "You(P1) choose: " << player1_hand[index_p1].numbers;
-								printColor(player1_hand[index_p1]);
-								bool winner = true;
-								int win_points = WinPoints(player1_hand[index_p1].numbers, player2_hand[index_p2].numbers, winner);
-								if (CheckSuit(player1_hand[index_p1].suits, player2_hand[index_p2].suits))
-								{
-									if (winner)
-									{
-										sum_p2 += win_points;
-										player_turn = true;
-									}
-									else
-									{
-										sum_p1 += win_points;
-										player_turn = false;
-									}
-								}
-								else
-								{
-									if (CheckSuit(player1_hand[index_p1].suits, bottom_card.suits))
-									{
-										sum_p1 += Points(player2_hand[index_p2].numbers) + Points(player1_hand[index_p1].numbers);
-										player_turn = true;
-									}
-									else if (CheckSuit(player2_hand[index_p2].suits, bottom_card.suits))
-									{
-										sum_p2 += Points(player2_hand[index_p2].numbers) + Points(player1_hand[index_p1].numbers);
-										player_turn = false;
-									}
-									else
-									{
-
-										sum_p2 += Points(player2_hand[index_p2].numbers) + Points(player1_hand[index_p1].numbers);
-										player_turn = true;
-									}
-								}
-								
-								player2_hand[index_p2] = arr[card_start_index_p1 + card_start_index_p2 + br];
-								br++;
-								player1_hand[index_p1] = arr[card_start_index_p1 + card_start_index_p2 + br];
-								br++;
-							}
-							
-							cout << endl << endl;
-							cout << "Result:" << endl;
-							cout << "P1: " << sum_p1 << endl;
-							cout << "P2: " << sum_p2 << endl;
-							
-						}
-						else if (CheckSuit(comand, "switch-nine"))
-						{
-							if (player_turn)
-							{
-								bool check_nine = false;
-								Card nine;
-								for (int i = 0; i < HAND_COUNT;i++)
-								{
-									if (CheckSuit(player1_hand[i].suits, bottom_card.suits) && CheckSuit(player1_hand[i].numbers, "9"))
-									{
-										nine = player1_hand[i];
-										check_nine = true;
-										break;
-									}
-								}
-								if (check_nine)
-								{
-									cout << "Player 1's switch with nine!"<<endl;
-									SwitchWithNine(arr, player1_hand, nine);
-								}
-								else
-								{
-
-								}
-								
-							}
-							else
-							{
-								bool check_nine = false;
-								Card nine;
-								for (int i = 0; i < HAND_COUNT; i++)
-								{
-									if (CheckSuit(player2_hand[i].suits, bottom_card.suits) && CheckSuit(player2_hand[i].numbers, "9"))
-									{
-										nine = player2_hand[i];
-										check_nine = true;
-										break;
-									}
-								}
-								if (check_nine)
-								{
-									cout << "Player 2's switch with nine!" << endl;
-									SwitchWithNine(arr, player2_hand, nine);
-								}
-								else
-								{
-
-								}
-							}
-						}
-						specials = true;
-						if (CheckSuit(comand, "marriage") || CheckSuit(comand, "m"))
-						{
-							
-							bool QK[MARRIAGE];
-							QK[0] = false;
-							QK[1] = false;
-							cout << "Plase write your suit from the marriage: ";
-							cin.getline(marriage_suit, MAX_SUITS+1);
-							cout << endl;
-							if (player_turn)
-							{
-								for (int i = 0; i < HAND_COUNT; i++)
-								{
-									if (CheckSuit(player1_hand[i].suits,marriage_suit) && CheckSuit(player1_hand[i].numbers,"Q"))
-									{
-										QK[0] = true;
-									}
-									if (CheckSuit(player1_hand[i].suits, marriage_suit) && CheckSuit(player1_hand[i].numbers, "K"))
-									{
-										QK[1] = true;
-									}
-								}
-								if (QK[0] && QK[1])
-								{
-									
-									marrige = true;
-								}
-								else
-								{
-									setColor(Color::Red);
-									cout << "Invalid merriage!!!";
-									setColor(Color::White);
-								}
-								
-							}
-							else
-							{
-									setColor(Color::Red);
-									cout << "You don't have a merriage!!!";
-									setColor(Color::White);
-							}
-						}
-						if (CheckSuit(comand, "close"))
-						{
-							if (player_turn)
-							{
-								if (sum_p1 >= 66)
-								{
-									setColor(Color::Green);
-									cout << "Player 1 win!!!"<<endl;
-									setColor(Color::White);
-								}
-								else
-								{
-									setColor(Color::Red);
-									cout << "Player 1 lose!!!" << endl;
-									setColor(Color::Green);
-									cout << "Player 2 win!!!" << endl;
-									setColor(Color::White);
-								}
-							}
-							else
-							{
-								if (sum_p2 >= 66)
-								{
-									setColor(Color::Green);
-									cout << "Player 2 win!!!" << endl;
-									setColor(Color::White);
-								}
-								else
-								{
-									setColor(Color::Red);
-									cout << "Player 2 lose!!!" << endl;
-									setColor(Color::Green);
-									cout << "Player 1 win!!!" << endl;
-									setColor(Color::White);
-								}
-							}
-							
+							setColor(Color::Red);
+							cout << endl << "Invalid cleaving!" << endl;
+							setColor(Color::White);
 						}
 					}
-					
-				}
+					if (CheckString(comand, "Computer vs Player") || CheckString(comand, "c") || CheckString(comand, "C"))
+					{
+						cout << "This mod is in development."<<endl;
+					}
 			}
 			else if (CheckString(comand, "rules"))
 			{
@@ -876,13 +1452,7 @@ int main()
 			{
 
 			}
-		}
-		else
-		{
-			setColor(Color::Red);
-			cout << "Invalid cleaving!";
-			setColor(Color::White);
-		}
+		
 	}
 	
 	cout << endl;
