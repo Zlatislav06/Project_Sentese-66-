@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
+#include <fstream>
 
 using namespace std;
 const int DECK = 24;
@@ -10,6 +11,10 @@ const int ELEMENT = 3;
 const int CMD_SIZE = 100;
 const int HAND_COUNT = 6;
 const int MARRIAGE = 2;
+const int SETTINGS = 4;
+const int BOOLELEMENT1 = 0;
+const int BOOLELEMENT2 = 1;
+const int FILEREADER = 1024;
 bool CheckString(char* string1, const char* string2)
 {
 	int size = 0;
@@ -349,10 +354,17 @@ bool SerachForCardFromEqualSuit(Card * hand,Card card,int size)
 void EndOfRound(bool player_turn, int sum_p1,int sum_p2,int& points_p1, int& points_p2)
 {
 	
+	
 	int win_points_of_round = 0;
+	ofstream file("current_result.txt");
+	if (!file.is_open())
+	{
+		cout << "Couldn't open file.";
+		return;
+	}
 	if (player_turn)
 	{
-
+		
 		if (sum_p1 >= 66)
 		{
 			if (sum_p2 >= 33)
@@ -371,6 +383,7 @@ void EndOfRound(bool player_turn, int sum_p1,int sum_p2,int& points_p1, int& poi
 			setColor(Color::Green);
 
 			cout << "Player 1 wins the round! (+" << win_points_of_round << " game points)" << endl;
+			file << "Winner - Player 1 (+" << win_points_of_round << ") | Player 1: " << sum_p1 << " points | Player 2: " << sum_p2 << " points" << endl;
 			setColor(Color::White);
 		}
 		else
@@ -388,6 +401,7 @@ void EndOfRound(bool player_turn, int sum_p1,int sum_p2,int& points_p1, int& poi
 			cout << "Player 1 lose!!!" << endl;
 			setColor(Color::Green);
 			cout << "Player 2 wins the round! (+" << win_points_of_round << " game points)" << endl;
+			file << "Winner - Player 2 (+" << win_points_of_round << ") | Player 1: " << sum_p1 << " points | Player 2: " << sum_p2 << " points" << endl;
 			setColor(Color::White);
 		}
 	}
@@ -410,6 +424,7 @@ void EndOfRound(bool player_turn, int sum_p1,int sum_p2,int& points_p1, int& poi
 			sum_p2 += win_points_of_round;
 			setColor(Color::Green);
 			cout << "Player 2 wins the round! (+" << win_points_of_round << " game points)" << endl;
+			file << "Winner - Player 2 (+" << win_points_of_round << ") | Player 1: " << sum_p1 << " points | Player 2: " << sum_p2 << " points" << endl;
 			setColor(Color::White);
 		}
 		else
@@ -427,10 +442,12 @@ void EndOfRound(bool player_turn, int sum_p1,int sum_p2,int& points_p1, int& poi
 			cout << "Player 2 lose!!!" << endl;
 			setColor(Color::Green);
 			cout << "Player 1 wins the round! (+" << win_points_of_round << " game points)" << endl;
+			file << "Winner - Player 1 (+" << win_points_of_round << ") | Player 1: " << sum_p1 << " points | Player 2: " << sum_p2 << " points" << endl;
 			setColor(Color::White);
 		}
 		cout << "Player 1: " << sum_p1 << " | Player 2: " << sum_p2;
 	}
+	
 }
 int main()
 {
@@ -450,8 +467,14 @@ int main()
 	int round = 1;
 	bool winner = true;
 	bool check_close = true;
+	//settings
 	int max_points = 11;
-	
+	int non_trump_merriage = 20;
+	int trump_merriage = 40;
+	bool on_or_off[MARRIAGE];
+	on_or_off[BOOLELEMENT1] = true;
+	on_or_off[BOOLELEMENT2] = true;
+
 	Card last_trick[MARRIAGE];
 	Card arr[DECK] = 
 	{
@@ -462,7 +485,7 @@ int main()
 	};
 	while (true)
 	{
-		Shuffle(arr);
+		
 		
 			cout << "If you want any of the following functions to be performed, please type one of the corresponding commands:\n";
 			cout << "> start" << endl;
@@ -472,27 +495,29 @@ int main()
 			cin.getline(comand, CMD_SIZE);
 			if (CheckString(comand, "start"))
 			{
-				int cleaving_index;
-				cout << "Player one chooses where to split the deck (write index of card):";
-				cin >> cleaving_index;
+				
 				cout << endl;
 				
 					cout << "You can choose whether to play against the computer or not." << endl;
 					cout << "> Player vs Player (p or P)" << endl;
 					cout << "> Computer vs Player (c or C)" << endl << endl << '>';
-					cin.ignore();
+					
 					cin.getline(comand, CMD_SIZE);
-					if (CheckString(comand, "Player vs Player") || CheckString(comand, "P") || CheckString(comand, "p"))
+					if (CheckSuit(comand, "Player vs Player") || CheckSuit(comand, "P") || CheckSuit(comand, "p"))
 					{
 						int sum_p1 = 0, sum_p2 = 0;
-						cout << "The game started!" << endl;
+						cout << "The game started!" << endl<<endl;
 						while (points_p1<max_points && points_p2 < max_points)
 						{
+							int cleaving_index;
+							cout << "Player one chooses where to split the deck (write index of card):";
+							cin >> cleaving_index;
 							 sum_p1 = 0, sum_p2 = 0;
+							 Shuffle(arr);
 							if (Cleaving(arr, cleaving_index))
 							{
 								setColor(Color::Aqua);
-								cout << "Round" << round<<"!"<<endl<<endl;
+								cout << "Round " << round<<"!"<<endl<<endl;
 								setColor(Color::White);
 								Card player1_hand[HAND_COUNT];
 								Card player2_hand[HAND_COUNT];
@@ -608,7 +633,7 @@ int main()
 
 									if (specials)
 									{
-										if (!check_nine)
+										if (!check_nine && check_close)
 										{
 											cout << "> switch-nine" << endl;
 										}
@@ -628,7 +653,7 @@ int main()
 									{
 										cout << "Player 2's turn" << endl << endl << '>';
 									}
-
+									
 									cin.getline(comand, CMD_SIZE);
 									if (CheckSuit(comand, "hand") || CheckSuit(comand, "h"))
 									{
@@ -701,11 +726,11 @@ int main()
 														marrige = false;
 														if (CheckSuit(marriage_suit, bottom_card.suits))
 														{
-															sum_p1 += 40;
+															sum_p1 += trump_merriage;
 														}
 														else
 														{
-															sum_p1 += 20;
+															sum_p1 += non_trump_merriage;
 														}
 													}
 													else
@@ -746,11 +771,11 @@ int main()
 														marrige = false;
 														if (CheckSuit(marriage_suit, bottom_card.suits))
 														{
-															sum_p2 += 40;
+															sum_p2 += trump_merriage;
 														}
 														else
 														{
-															sum_p2 += 20;
+															sum_p2 += non_trump_merriage;
 														}
 													}
 													else
@@ -950,11 +975,11 @@ int main()
 														marrige = false;
 														if (CheckSuit(marriage_suit, bottom_card.suits))
 														{
-															sum_p1 += 40;
+															sum_p1 += trump_merriage;
 														}
 														else
 														{
-															sum_p1 += 20;
+															sum_p1 += non_trump_merriage;
 														}
 													}
 													else
@@ -993,11 +1018,11 @@ int main()
 														marrige = false;
 														if (CheckSuit(marriage_suit, bottom_card.suits))
 														{
-															sum_p2 += 40;
+															sum_p2 += trump_merriage;
 														}
 														else
 														{
-															sum_p2 += 20;
+															sum_p2 += non_trump_merriage;
 														}
 													}
 													else
@@ -1236,10 +1261,14 @@ int main()
 												cards_of_hand--;
 											}
 										}
-										cout << endl << endl;
-										cout << "Result:" << endl;
-										cout << "P1: " << sum_p1 << endl;
-										cout << "P2: " << sum_p2 << endl;
+										if (on_or_off[BOOLELEMENT1])
+										{
+											cout << endl << endl;
+											cout << "Result:" << endl;
+											cout << "P1: " << sum_p1 << endl;
+											cout << "P2: " << sum_p2 << endl;
+										}
+										
 
 									}
 									else if (CheckSuit(comand, "switch-nine") || CheckSuit(comand, "sw"))
@@ -1257,17 +1286,20 @@ int main()
 													break;
 												}
 											}
-											if (check_nine)
-											{
-												cout << "Player 1's switch with nine!" << endl;
-												SwitchWithNine(arr, player1_hand, nine);
-											}
-											else
-											{
-												setColor(Color::Red);
-												cout << "You don't have this nine!!!";
-												setColor(Color::White);
-											}
+											
+													if (check_nine)
+													{
+														cout << "Player 1's switch with nine!" << endl;
+														SwitchWithNine(arr, player1_hand, nine);
+													}
+													else
+													{
+														setColor(Color::Red);
+														cout << "You don't have this nine!!!";
+														setColor(Color::White);
+													}
+											
+											
 
 										}
 										else
@@ -1301,8 +1333,8 @@ int main()
 									{
 
 										bool QK[MARRIAGE];
-										QK[0] = false;
-										QK[1] = false;
+										QK[BOOLELEMENT1] = false;
+										QK[BOOLELEMENT2] = false;
 										cout << "Plase write your suit from the marriage(Spades, Hearts, Diamonds, Clubs): ";
 										cin.getline(marriage_suit, MAX_SUITS + 1);
 										cout << endl;
@@ -1312,14 +1344,14 @@ int main()
 											{
 												if (CheckSuit(player1_hand[i].suits, marriage_suit) && CheckSuit(player1_hand[i].numbers, "Q"))
 												{
-													QK[0] = true;
+													QK[BOOLELEMENT1] = true;
 												}
 												if (CheckSuit(player1_hand[i].suits, marriage_suit) && CheckSuit(player1_hand[i].numbers, "K"))
 												{
-													QK[1] = true;
+													QK[BOOLELEMENT2] = true;
 												}
 											}
-											if (QK[0] && QK[1])
+											if (QK[BOOLELEMENT1] && QK[BOOLELEMENT2])
 											{
 
 												marrige = true;
@@ -1338,14 +1370,14 @@ int main()
 											{
 												if (CheckSuit(player2_hand[i].suits, marriage_suit) && CheckSuit(player2_hand[i].numbers, "Q"))
 												{
-													QK[0] = true;
+													QK[BOOLELEMENT1] = true;
 												}
 												if (CheckSuit(player2_hand[i].suits, marriage_suit) && CheckSuit(player2_hand[i].numbers, "K"))
 												{
-													QK[1] = true;
+													QK[BOOLELEMENT2] = true;
 												}
 											}
-											if (QK[0] && QK[1])
+											if (QK[BOOLELEMENT1] && QK[BOOLELEMENT2])
 											{
 
 												marrige = true;
@@ -1378,12 +1410,20 @@ int main()
 									}
 									if (CheckSuit(comand, "end") || CheckSuit(comand, "e"))
 									{
+										//if()
+										ofstream file("current_result.txt");
+										if (!file.is_open())
+										{
+											cout << "Couldn't open file.";
+											return 1;
+										}
+										file << "Round "<<round<<": ";
 										end = true;
 										cout << endl << "Round " << round << " ended." << endl;
 										round++;
 										cout << "Calculating points..." << endl;
 										EndOfRound(player_turn, sum_p1, sum_p2, points_p1, points_p2);
-										
+										file.close();
 										break;
 									}
 									if (CheckSuit(comand, "information") || CheckSuit(comand, "i"))
@@ -1392,7 +1432,8 @@ int main()
 										cout << "> last-trick" << endl;
 										cout << "> trump" << endl;
 										cout << "> history" << endl;
-										cout << "> status " << endl << endl << "<";
+										cout << "> status " << endl << endl << "> ";
+										
 										cin.getline(comand, CMD_SIZE);
 										if (CheckSuit(comand, "last-trick") || CheckSuit(comand, "l"))
 										{
@@ -1420,6 +1461,25 @@ int main()
 										}
 										else if (CheckSuit(comand, "history") || CheckSuit(comand, "h"))
 										{
+											char buffer[FILEREADER];
+											cout << endl;
+											setColor(Color::Green);
+											ifstream file("current_result.txt");
+											if (!file.is_open())
+											{
+												cout << "Couldn't open file."<<endl;
+												return 1;
+											}
+											setColor(Color::Gray);
+											while (file.getline(buffer, FILEREADER))
+											{
+												cout << buffer << endl;
+											}
+											cout << "Round " << round <<": Ongoing!" << endl;
+											setColor(Color::Green);
+											cout << "Player 1 - " << points_p1 << " | Player 2 - " << points_p2;
+											setColor(Color::White);
+											cout << endl;
 
 										}
 										else if (CheckSuit(comand, "status") || CheckSuit(comand, "status"))
@@ -1429,9 +1489,12 @@ int main()
 										cout << endl;
 
 									}
+									
 
 
 								}
+								
+								
 								
 							}
 							else
@@ -1442,48 +1505,178 @@ int main()
 							}
 							if (!end)
 							{
+								if (on_or_off[BOOLELEMENT2])
+								{
+									if (player_turn)
+									{
+										sum_p1 += 10;
+									}
+									else
+									{
+										sum_p2 += 10;
+									}
+								}
+								ofstream file("current_result.txt");
+								if (!file.is_open())
+								{
+									cout << "Couldn't open file.";
+									return 1;
+								}
+								file << "Round " << round << ": ";
 								cout << endl << "Round " << round << " ended." << endl;
 								round++;
 								cout << "Calculating points..." << endl;
 								EndOfRound(player_turn, sum_p1, sum_p2, points_p1, points_p2);
-								cout << endl;
+								cout << endl << endl;
+								file.close();
+								end = false;
+								cards_of_hand = 6;
 							}
+					
 
 
 						}
-						
+						round = 0;
 
 							
 					}
-					if (CheckString(comand, "Computer vs Player") || CheckString(comand, "c") || CheckString(comand, "C"))
+					if (CheckSuit(comand, "Computer vs Player") || CheckSuit(comand, "c") || CheckSuit(comand, "C"))
 					{
+						setColor(Color::Red);
 						cout << "This mod is in development."<<endl;
+						setColor(Color::White);
 					}
+					cout << endl;
 			}
 			else if (CheckString(comand, "rules"))
 			{
 
-				cout << "SANTASE (66)\nEach player gets 6 cards.The Trump suit is chosen at random." << endl;
+				cout << "SANTASE (66)" << endl<< "Each player gets 6 cards.The Trump suit is chosen at random." << endl;
 				cout << "Card values : A = 11, 10 = 10, K = 4, Q = 3, J = 2, 9 = 0." << endl;
 				cout << "A marriage(K + Q of the same suit) gives 20 points, or 40 if the trump suit." << endl;
-				cout << " The first player to reach 66 points wins the round." << endl;
+				cout << " The first player to reach 66 points wins the round." << endl << endl;
 
 			}
 			else if (CheckString(comand, "settings"))
 			{
-				cout << "SANTASE (66)\n1) Target points to win[11]" << endl;
-				cout << "2) Marriage points(non - trump / trump)[20 / 40]" << endl;
-				cout << "3) Show players' points [on]" << endl;
-				cout << "4) Last trick + 10[on]" << endl;
-				cout << "Enter number to change or 'back' to return:" << endl;
+				char number_for_change[SETTINGS];
+				while (CheckString(number_for_change, "back"))
+				{
+					cout << "SANTASE (66)" << endl;
+					cout << "1) Target points to win[11]" << endl;
+					cout << "2) Marriage points(non - trump / trump)[20 / 40]" << endl;
+					cout << "3) Show players' points [on]" << endl;
+					cout << "4) Last trick + 10[on]" << endl;
+					cout << "Enter number to change or 'back' to return:" << endl << endl;
+					cout << "Choose number:";
 
+					int change_number = 0;
+					
+					cin.getline(number_for_change, SETTINGS + 1);
+					if (number_for_change[0] > '0' && number_for_change[0] < '9')
+					{
+						switch (number_for_change[0])
+						{
+						case '1':
+						{
+							change_number = 1;
+							break;
+						}
+						case '2':
+						{
+							change_number = 2;
+							break;
+						}
+						case '3':
+						{
+							change_number = 3;
+							break;
 
+						}
+						case '4':
+						{
+							change_number = 4;
+							break;
+						}
+						default:
+						{
+							setColor(Color::Red);
+							cout << endl << "Invalid number!" << endl;
+							setColor(Color::White);
+							break;
+						}
 
+						}
+						switch (change_number)
+						{
+						case 1:
+						{
+							cout << "Target points to win:";
+							cin >> max_points;
+							break;
+						}
+						case 2:
+						{
+							cout << "Marriage points(non - trump):";
+							cin >> non_trump_merriage;
+							cout << "Marriage points(trump):";
+							cin >> trump_merriage;
+							break;
+						}
+						case 3:
+						{
+							char show[ELEMENT];
+							cout << "Do you want to show players' points(Yes/No)(y/n):";
+							cin.getline(show, ELEMENT + 1);
+							if (CheckSuit(show, "Yes") || CheckSuit(show, "y"))
+							{
+								on_or_off[BOOLELEMENT1] = true;
+							}
+							else if (CheckSuit(show, "No") || CheckSuit(show, "n"))
+							{
+								on_or_off[BOOLELEMENT1] = false;
+							}
+							break;
 
+						}
+						case 4:
+						{
+							char show[ELEMENT];
+							cout << "Do you want to last trick (+10 points)(Yes/No)(y/n):";
+							cin.getline(show, ELEMENT + 1);
+							if (CheckSuit(show, "Yes") || CheckSuit(show, "y"))
+							{
+								on_or_off[BOOLELEMENT2] = true;
+							}
+							else if (CheckSuit(show, "No") || CheckSuit(show, "n"))
+							{
+								on_or_off[BOOLELEMENT2] = false;
+							}
+							break;
+						}
+						}
+					}
+					else
+					{
+						if (CheckSuit(number_for_change, "back"))
+						{
+							break;
+						}
+						else
+						{
+							setColor(Color::Red);
+							cout << endl << "Invalid command!!!" << endl;
+							setColor(Color::White);
+						}
+					}
+				}
+				
 			}
 			else
 			{
-
+				setColor(Color::Red);
+				cout << endl << "Invalid command!!!" << endl;
+				setColor(Color::White);
 			}
 		
 	}
