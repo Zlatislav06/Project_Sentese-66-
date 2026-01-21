@@ -1,3 +1,17 @@
+/**
+*
+* Solution to course project # 2
+* Introduction to programming course
+* Faculty of Mathematics and Informatics of Sofia University
+* Winter semester 2025/2026
+*
+* @author Zlatislav Panteleev
+* @idnumber 2MI0600600 * @compiler VCC
+*
+* <file with helper functions>
+*
+*/
+
 #include <windows.h>
 #include <iostream>
 #include <cstdlib>
@@ -11,7 +25,7 @@ const int ELEMENT = 3;
 const int CMD_SIZE = 100;
 const int HAND_COUNT = 6;
 const int MARRIAGE = 2;
-const int SETTINGS = 4;
+const int SETTINGS = 5;
 const int BOOLELEMENT1 = 0;
 const int BOOLELEMENT2 = 1;
 const int FILEREADER = 1024;
@@ -248,59 +262,75 @@ void HandPrintAfterDeck(Card* hand,int size)
 
 	}
 }
+void TrumpSpades(Card card)
+{
+	cout << "Trump suit:";
+	setColor(Color::Gray);
+	cout << "\xE2\x99\xA0";
+	setColor(Color::White);
+	cout << "(Spades)" << endl;
+	cout << "Bottom card:";
+	cout << card.numbers;
+	setColor(Color::Gray);
+	cout << "\xE2\x99\xA0" << endl;
+	setColor(Color::White);
+}
+void TrumpHearts(Card card)
+{
+	cout << "Trump suit:";
+	setColor(Color::Red);
+	cout << "\xE2\x99\xA5";
+	setColor(Color::White);
+	cout << "(Hearts)" << endl;
+	cout << "Bottom card:";
+	cout << card.numbers;
+	setColor(Color::Red);
+	cout << "\xE2\x99\xA5" << endl;
+	setColor(Color::White);
+}
+void TrumpDiamonds(Card card)
+{
+	cout << "Trump suit:";
+	setColor(Color::Red);
+	cout << "\xE2\x99\xA6";
+	setColor(Color::White);
+	cout << "(Diamonds)" << endl;
+	cout << "Bottom card:";
+	cout << card.numbers;
+	setColor(Color::Red);
+	cout << "\xE2\x99\xA6" << endl;
+	setColor(Color::White);
+}
+void TrumpClubs(Card card)
+{
+	cout << "Trump suit:";
+	setColor(Color::Gray);
+	cout << "\xE2\x99\xA3";
+	setColor(Color::White);
+	cout << "(Clubs)" << endl;
+	cout << "Bottom card:";
+	cout << card.numbers;
+	setColor(Color::Gray);
+	cout << "\xE2\x99\xA3" << endl;
+	setColor(Color::White);
+}
 void BottomCard(Card bottom_card)
 {
 	if (CheckSuit(bottom_card.suits, "Spades"))
 	{
-		cout << "Trump suit:";
-		setColor(Color::Gray);
-		cout << "\xE2\x99\xA0";
-		setColor(Color::White);
-		cout << "(Spades)" << endl;
-		cout << "Bottom card:";
-		cout << bottom_card.numbers;
-		setColor(Color::Gray);
-		cout << "\xE2\x99\xA0" << endl;
-		setColor(Color::White);
+		TrumpSpades(bottom_card);
 	}
 	else if (CheckSuit(bottom_card.suits, "Hearts"))
 	{
-		cout << "Trump suit:";
-		setColor(Color::Red);
-		cout << "\xE2\x99\xA5";
-		setColor(Color::White);
-		cout << "(Hearts)" << endl;
-		cout << "Bottom card:";
-		cout << bottom_card.numbers;
-		setColor(Color::Red);
-		cout << "\xE2\x99\xA5" << endl;
-		setColor(Color::White);
+		TrumpHearts(bottom_card);
 	}
 	else if (CheckSuit(bottom_card.suits, "Diamonds"))
 	{
-		cout << "Trump suit:";
-		setColor(Color::Red);
-		cout << "\xE2\x99\xA6";
-		setColor(Color::White);
-		cout << "(Diamonds)" << endl;
-		cout << "Bottom card:";
-		cout << bottom_card.numbers;
-		setColor(Color::Red);
-		cout << "\xE2\x99\xA6" << endl;
-		setColor(Color::White);
+		TrumpDiamonds(bottom_card);
 	}
 	else if (CheckSuit(bottom_card.suits, "Clubs"))
 	{
-		cout << "Trump suit:";
-		setColor(Color::Gray);
-		cout << "\xE2\x99\xA3";
-		setColor(Color::White);
-		cout << "(Clubs)" << endl;
-		cout << "Bottom card:";
-		cout << bottom_card.numbers;
-		setColor(Color::Gray);
-		cout << "\xE2\x99\xA3" << endl;
-		setColor(Color::White);
+		TrumpClubs(bottom_card);
 	}
 }
 void ConsoleClear()
@@ -620,12 +650,17 @@ void Settings(int& max_points,int& non_trump_merriage,int& trump_merriage,bool *
 	cout << "4) Last trick + 10[on]" << endl;
 	cout << "Enter number to change or 'back' to return:" << endl << endl;
 	
+
 	while (!CheckString(number_for_change, "back"))
 	{
 		int change_number = 0; 
 		cout << "Choose number:";
-		cin.getline(number_for_change, SETTINGS + 1);
-		if (number_for_change[0] > '0' && number_for_change[0] < '9')
+		while (!(cin >> number_for_change)) {
+			cin.clear();
+			cin.ignore(10000, '\n');
+		}
+		cin.ignore(10000, '\n');
+		if ((number_for_change[0] > '0' && number_for_change[0] < '9')&& number_for_change[1] == NULL)
 		{
 			switch (number_for_change[0])
 			{
@@ -806,7 +841,11 @@ int main()
 					cout << "> Player vs Player (p or P)" << endl;
 					cout << "> Computer vs Player (c or C)" << endl << endl << '>';
 					
-					cin.getline(comand, CMD_SIZE);
+					while (!(cin >> comand)) {
+						cin.clear();
+						cin.ignore(10000, '\n');
+					}
+					cin.ignore(10000, '\n');
 					if (CheckSuit(comand, "Player vs Player") || CheckSuit(comand, "P") || CheckSuit(comand, "p"))
 					{
 						int sum_p1 = 0, sum_p2 = 0;
@@ -900,7 +939,11 @@ int main()
 										cout << "Player 2's turn" << endl << endl << "> ";
 									}
 									
-									cin.getline(comand, CMD_SIZE);
+									while (!(cin >> comand)) {
+										cin.clear();
+										cin.ignore(10000, '\n');
+									}
+									cin.ignore(10000, '\n');
 									if (CheckSuit(comand, "load") || CheckSuit(comand, "l"))
 									{
 										char buffer[FILEREADER];
@@ -1611,12 +1654,14 @@ int main()
 												cards_of_hand--;
 											}
 										}
+										
 										if (on_or_off[BOOLELEMENT1])
 										{
 											cout << endl << endl;
 											cout << "Result:" << endl;
 											cout << "P1: " << sum_p1 << endl;
 											cout << "P2: " << sum_p2 << endl;
+											cout << endl;
 										}
 										
 
@@ -1636,7 +1681,7 @@ int main()
 										cout << "> information" << endl;
 										cout << "> end" << endl<<endl<<"> ";
 										cin.getline(comand, CMD_SIZE);
-										if (CheckSuit(comand, "switch-nine") || CheckSuit(comand, "sw"))
+										if (CheckSuit(comand, "switch-nine") || CheckSuit(comand, "sw") && !check_nine && check_close)
 										{
 											if (player_turn)
 											{
@@ -1756,7 +1801,7 @@ int main()
 
 											}
 										}
-										if (CheckSuit(comand, "close") || CheckSuit(comand, "c"))
+										if (CheckSuit(comand, "close") || CheckSuit(comand, "c")&& check_close)
 										{
 											if (specials && check_close)
 											{
@@ -1793,10 +1838,10 @@ int main()
 													file << "Round " << round << ": ";
 													end = true;
 													cout << endl << "Round " << round << " ended." << endl;
-													
+													file.close();
 													cout << "Calculating points..." << endl;
 													EndOfRound(player_turn, sum_p1, sum_p2, points_p1, points_p2);
-													file.close();
+													
 												}
 												if (round != 1)
 												{
@@ -1809,10 +1854,10 @@ int main()
 													file << "Round " << round << ": ";
 													end = true;
 													cout << endl << "Round " << round << " ended." << endl;
-													
+													file.close();
 													cout << "Calculating points..." << endl;
 													EndOfRound(player_turn, sum_p1, sum_p2, points_p1, points_p2);
-													file.close();
+													
 												}
 												round++;
 												break;
@@ -1829,9 +1874,10 @@ int main()
 												end = true;
 												cout << endl << "Round " << round << " ended." << endl;
 												round++;
+												file.close();
 												cout << "Calculating points..." << endl;
 												EndOfRound(!player_turn, sum_p1, sum_p2, points_p1, points_p2);
-												file.close();
+										
 												break;
 											}
 											if (CheckSuit(comand, "surrender-forever") || CheckSuit(comand, "sf"))
@@ -1947,10 +1993,10 @@ int main()
 									}
 									file << "Round " << round << ": ";
 									cout << endl << "Round " << round << " ended." << endl;
-									
+									file.close();
 									cout << "Calculating points..." << endl;
 									EndOfRound(player_turn, sum_p1, sum_p2, points_p1, points_p2);
-									file.close();
+									
 									cout << endl << endl;
 
 								}
@@ -1963,11 +2009,12 @@ int main()
 										return 1;
 									}
 									file << "Round " << round << ": ";
+									file.close();
 									cout << endl << "Round " << round << " ended." << endl;
 									
 									cout << "Calculating points..." << endl;
 									EndOfRound(player_turn, sum_p1, sum_p2, points_p1, points_p2);
-									file.close();
+									
 									cout << endl << endl;
 
 								}
@@ -1977,8 +2024,6 @@ int main()
 								cards_of_hand = 6;
 							}
 					
-
-
 						}
 						if (points_p1 > points_p2)
 						{
